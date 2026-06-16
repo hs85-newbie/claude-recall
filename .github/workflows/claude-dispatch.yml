@@ -24,8 +24,8 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           # 중앙 설정 레포 — repo/org 변수로 설정(예: youruser/claude-recall).
           # 이 워크플로는 다른 프로젝트 레포에 복사돼 여기서 CLAUDE.md·skills를 가져온다.
