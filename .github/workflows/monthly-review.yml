@@ -1,0 +1,32 @@
+name: 월간 자동 점검
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # UTC 00:00 매월 1일 = KST 매월 1일 09:00
+  workflow_dispatch:
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            월간 자동 점검을 수행해주세요. 아래 항목을 검토하고
+            GitHub Issue로 비기술적 언어 보고서를 작성해주세요.
+            라벨: monthly-review
+
+            1. 지난달 반복된 실수/패턴 → 자동 차단 규칙 추가 제안
+            2. 문서 누락 항목 → 보완 제안
+            3. CLAUDE.md 규칙 미준수 패턴 → 자동화 또는 규칙 수정 제안
+            4. 워크플로우 상태 요약 (성공/실패 비율)
+          claude_args: "--max-turns 15"

@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # npm 패키지 의존성
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "claude-todo"       # 야간 자동 처리 대상으로 분류
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]  # 메이저 업데이트는 수동 검토
+
+  # GitHub Actions 버전
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"

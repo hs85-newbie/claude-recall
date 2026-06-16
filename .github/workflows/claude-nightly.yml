@@ -1,0 +1,53 @@
+name: Claude Code (야간 자동)
+
+on:
+  schedule:
+    - cron: '0 14 * * *'  # UTC 14:00 = KST 23:00
+  workflow_dispatch:
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          # 중앙 설정 레포 — repo/org 변수로 설정(예: youruser/claude-recall).
+          repository: ${{ vars.CLAUDE_GLOBAL_REPO }}
+          path: .claude-global
+          token: ${{ secrets.GLOBAL_SETTINGS_TOKEN }}
+      - run: |
+          mkdir -p ~/.claude/skills
+          cp .claude-global/CLAUDE.md ~/.claude/CLAUDE.md
+          cp -r .claude-global/skills/* ~/.claude/skills/ 2>/dev/null || true
+      - name: Bun 설치
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/cache@v4
+        with:
+          path: ~/gstack
+          key: gstack-v1-${{ runner.os }}
+      - name: gstack 설치 (캐시 미스 시)
+        run: |
+          if [ ! -f ~/gstack/setup ]; then
+            git clone https://github.com/garrytan/gstack.git ~/gstack
+          fi
+          cd ~/gstack && ./setup --host claude
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            GitHub Issues에서 라벨이 'claude-todo'인 이슈를
+            우선순위 순으로 처리해주세요.
+            각 이슈마다 별도 PR을 생성하고,
+            완료된 이슈에는 'claude-done' 라벨을 추가해주세요.
+            CLAUDE.md의 모든 규칙을 준수해주세요.
+          claude_args: "--max-turns 30"

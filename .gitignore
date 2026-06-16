@@ -1,0 +1,13 @@
+# 별도 GitHub repo로 관리되는 nested workspace
+project-template/
+
+# 시크릿/환경변수 (절대 커밋 금지)
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Python venv
+tools/session-archive/.venv/
+__pycache__/
+*.pyc

@@ -1,0 +1,29 @@
+[project]
+name = "session-archive"
+version = "0.1.0"
+description = "Claude Code 세션 로그 L1/L2 아카이브 파이프라인 (ADR-001)"
+requires-python = ">=3.11"
+dependencies = [
+  "anthropic>=0.40.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+]
+
+[project.scripts]
+session-archive = "session_archive.cli:main"
+session-archive-mcp = "session_archive.mcp_server:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

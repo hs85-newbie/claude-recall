@@ -1,0 +1,66 @@
+name: CI 품질 게이트
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'tsconfig.json'
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'tsconfig.json'
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. 의존성 설치
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+
+      # 2. 타입 체크
+      - name: TypeScript 타입 체크
+        run: pnpm tsc --noEmit
+
+      # 3. 린트
+      - name: ESLint
+        run: pnpm lint
+
+      # 4. 빌드 검증
+      - name: 빌드
+        run: pnpm build
+
+      # 5. 테스트 + 커버리지
+      - name: 테스트 실행
+        run: pnpm test --coverage
+
+      - name: 커버리지 80% 체크
+        run: pnpm coverage-check   # package.json scripts에 정의
+
+      # 6. 보안 스캔
+      - name: npm audit (알려진 취약점)
+        run: pnpm audit --audit-level=high
+
+      # 7. 커버리지 리포트 PR 댓글로 게시
+      - name: 커버리지 댓글
+        if: github.event_name == 'pull_request'
+        uses: davelosert/vitest-coverage-report-action@v2

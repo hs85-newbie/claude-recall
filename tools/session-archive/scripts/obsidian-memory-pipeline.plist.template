@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- 템플릿: setup.sh가 __ROOT__·__HOME__을 치환해 ~/Library/LaunchAgents/에 설치 -->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.session-archive.obsidian-memory-pipeline</string>
+
+    <!-- 매일 04:00 실행 -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>4</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <!-- 실행: pipeline.sh wrapper (ingest → summarize → export) -->
+    <key>WorkingDirectory</key>
+    <string>__ROOT__</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__ROOT__/scripts/pipeline.sh</string>
+    </array>
+
+    <!-- wrapper stdout은 비움 (pipeline.sh가 launchd-pipeline.log로 직접 redirect) -->
+    <key>StandardOutPath</key>
+    <string>/dev/null</string>
+    <key>StandardErrorPath</key>
+    <string>__HOME__/.claude-archive/launchd-pipeline.err</string>
+
+    <!-- RunAtLoad 미사용: 등록·로그인 시 즉시 실행하지 않고 04:00 스케줄에만 실행 -->
+    <!-- (취침 중이면 launchd가 깨어날 때 누락분 1회 catch-up) -->
+</dict>
+</plist>

@@ -1,0 +1,93 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeGitInstructions": false,
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(pnpm:*)",
+      "Bash(bun:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(python3:*)",
+      "Bash(pip:*)",
+      "Bash(pip3:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(ln:*)",
+      "Bash(chmod:*)",
+      "Bash(test:*)",
+      "Bash(gh:*)",
+      "Bash(docker:*)",
+      "Bash(psql:*)",
+      "Bash(railway:*)",
+      "Bash(lms:*)",
+      "Bash(curl:*)",
+      "Bash(ffmpeg:*)",
+      "Bash(ffprobe:*)",
+      "Bash(make:*)",
+      "Bash(sysctl:*)",
+      "Bash(system_profiler:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:developers.openai.com)",
+      "WebFetch(domain:lmstudio.ai)",
+      "WebFetch(domain:huggingface.co)",
+      "WebSearch"
+    ]
+  },
+  "model": "opus",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "(요약해|번역해|포매팅|포맷팅|정렬해|변환해|추출해)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__HOME__/.claude/hooks/route-to-local.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    }
+  },
+  "theme": "auto",
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true,
+  "mcpServers": {
+    "local-llm": {
+      "command": "node",
+      "args": [
+        "__HOME__/gemma4-bench/scripts/mcp-local-llm.mjs"
+      ],
+      "env": {
+        "LM_STUDIO_URL": "http://localhost:1234/v1",
+        "LOCAL_LLM_MODEL": "gemma-4-26b-a4b-it"
+      }
+    },
+    "session-archive-recall": {
+      "command": "__HOME__/my-claude-global/tools/session-archive/.venv/bin/session-archive-mcp"
+    }
+  },
+  "autoConnectIde": false,
+  "skipDangerousModePermissionPrompt": true
+}

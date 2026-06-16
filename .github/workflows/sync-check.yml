@@ -1,0 +1,66 @@
+name: 설정 동기화 체크
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # UTC 00:00 월요일 = KST 월요일 09:00
+  workflow_dispatch:
+
+jobs:
+  sync-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 필수 파일 존재 확인
+        run: |
+          MISSING=""
+          [ ! -f CLAUDE.md ] && MISSING="$MISSING\n- CLAUDE.md"
+          [ ! -f settings.json ] && MISSING="$MISSING\n- settings.json"
+          [ ! -d docs ] && MISSING="$MISSING\n- docs/"
+          [ ! -f .github/workflows/claude.yml ] && MISSING="$MISSING\n- .github/workflows/claude.yml"
+          [ ! -f .github/workflows/claude-dispatch.yml ] && MISSING="$MISSING\n- .github/workflows/claude-dispatch.yml"
+          [ ! -f .github/dependabot.yml ] && MISSING="$MISSING\n- .github/dependabot.yml"
+
+          if [ -n "$MISSING" ]; then
+            echo "MISSING_FILES<<EOF" >> $GITHUB_ENV
+            echo -e "$MISSING" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            echo "HAS_ISSUES=true" >> $GITHUB_ENV
+          else
+            echo "모든 필수 파일 정상"
+            echo "HAS_ISSUES=false" >> $GITHUB_ENV
+          fi
+
+      - name: CLAUDE.md @docs 참조 검증
+        run: |
+          BROKEN=""
+          for ref in $(grep -oP '@docs/\S+' CLAUDE.md); do
+            file="${ref#@}"
+            [ ! -f "$file" ] && BROKEN="$BROKEN\n- $ref → $file 없음"
+          done
+
+          if [ -n "$BROKEN" ]; then
+            echo "BROKEN_REFS<<EOF" >> $GITHUB_ENV
+            echo -e "$BROKEN" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            echo "HAS_ISSUES=true" >> $GITHUB_ENV
+          fi
+
+      - name: 이슈 생성 (문제 발견 시)
+        if: env.HAS_ISSUES == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const missing = process.env.MISSING_FILES || '없음';
+            const broken = process.env.BROKEN_REFS || '없음';
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '[자동] 설정 동기화 문제 감지',
+              labels: ['claude-todo'],
+              body: `## 주간 설정 동기화 체크 결과\n\n### 누락 파일\n${missing}\n\n### 깨진 참조\n${broken}\n\n자동 생성된 이슈입니다.`
+            });

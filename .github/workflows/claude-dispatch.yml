@@ -1,0 +1,114 @@
+name: Claude Code (수동 실행)
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Claude에게 시킬 작업"
+        required: true
+        type: string
+      max_turns:
+        description: "최대 실행 횟수 (기본: 20)"
+        default: "20"
+        type: string
+  repository_dispatch:
+    types: [claude-task]
+
+jobs:
+  claude:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          # 중앙 설정 레포 — repo/org 변수로 설정(예: youruser/claude-recall).
+          # 이 워크플로는 다른 프로젝트 레포에 복사돼 여기서 CLAUDE.md·skills를 가져온다.
+          repository: ${{ vars.CLAUDE_GLOBAL_REPO }}
+          path: .claude-global
+          token: ${{ secrets.GLOBAL_SETTINGS_TOKEN }}
+      - run: |
+          mkdir -p ~/.claude/skills
+          cp .claude-global/CLAUDE.md ~/.claude/CLAUDE.md
+          cp -r .claude-global/skills/* ~/.claude/skills/ 2>/dev/null || true
+      - name: Bun 설치
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/cache@v4
+        with:
+          path: ~/gstack
+          key: gstack-v1-${{ runner.os }}
+      - name: gstack 설치 (캐시 미스 시)
+        run: |
+          if [ ! -f ~/gstack/setup ]; then
+            git clone https://github.com/garrytan/gstack.git ~/gstack
+          fi
+          cd ~/gstack && ./setup --host claude
+      - name: Claude Code 실행
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            ${{ inputs.task || github.event.client_payload.task }}
+
+            ⚠️ 중요: git 명령(checkout, add, commit, push)은 절대 실행하지 마세요.
+            파일 생성/수정만 하면 워크플로우가 자동으로 커밋하고 푸시합니다.
+          claude_args: "--max-turns ${{ inputs.max_turns || github.event.client_payload.max_turns || '20' }} --model claude-sonnet-4-6 --dangerously-skip-permissions"
+
+      # WHY: Claude에게 git push를 위임하면 max_turns 초과/권한 문제로 실패 반복
+      - name: 변경사항 감지
+        id: changes
+        run: |
+          # WHY: .claude-global은 워크플로우가 별도 checkout한 서브레포 — false positive 방지
+          CHANGES=$(git status --porcelain | grep -v '^?? \.claude-global/$' || true)
+          if [ -n "$CHANGES" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "$CHANGES"
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "변경사항 없음"
+          fi
+
+      - name: Git Commit & Push
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          TASK: ${{ inputs.task || github.event.client_payload.task }}
+          GH_TOKEN: ${{ secrets.GLOBAL_SETTINGS_TOKEN }}
+        run: |
+          WORK_BRANCH="claude/manual-$(date +%Y%m%d-%H%M%S)"
+          COMMIT_MSG=$(echo "$TASK" | head -c 72)
+
+          # WHY: actions/checkout 토큰은 checkout step에서만 유효, push용 별도 설정 필요
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$WORK_BRANCH"
+
+          # WHY: .claude-global은 별도 checkout된 서브레포 — 커밋 대상 제외
+          echo ".claude-global" >> .gitignore
+          git add -A
+          git reset HEAD .gitignore
+
+          # WHY: commit 실패 시 정상 종료 (변경사항 없음 추정)
+          if ! git commit -m "${COMMIT_MSG}" 2>&1; then
+            echo "❌ commit 실패 — 변경사항 없음"
+            exit 0
+          fi
+
+          for i in 1 2 3; do
+            if git push origin "$WORK_BRANCH" 2>&1; then
+              echo "✅ Push 성공 (시도 ${i}/3)"
+              exit 0
+            fi
+            echo "⚠️ Push 실패 (${i}/3), 재시도..."
+            sleep $((2 ** i))
+          done
+          echo "❌ Push 3회 실패"
+          exit 1
