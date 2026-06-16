@@ -1,8 +1,16 @@
 # claude-recall
 
-clone → `bootstrap.sh` 한 번으로 **어느 머신에서든 동일한 Claude Code 전역 환경**을 세우고, **과거 세션·결정·체크포인트를 회상(RAG)**합니다. Claude Code 세션 로그를 로컬 SQLite/FTS로 적재하고 Obsidian vault로 내보내며, MCP로 Claude가 과거 맥락을 자동 회상합니다(로컬 + 크로스머신). 특정 인프라에 묶이지 않고 로컬/임의 호스트에서 독립 구동 — 중앙 서버 0.
+Claude Code는 세션이 끝나면 다 잊는다. 어제 왜 그 라이브러리를 골랐는지, 저 버그를 어떻게 잡았는지, 다른 노트북에서 뭘 하다 왔는지 — 다음 대화엔 아무것도 안 남는다. claude-recall은 그 기억을 붙여준다.
 
-> `CLAUDE.md`는 **오피니언 예시**(개인 개발 원칙·한국어)입니다. 취향껏 편집해 쓰세요.
+clone하고 `bootstrap.sh` 한 번이면 두 개가 깔린다. 어느 머신에서든 똑같이 재현되는 Claude Code 전역 환경(규칙·설정·hooks·스킬), 그리고 과거 세션·결정·체크포인트를 검색하고 회상하는 RAG 계층이다.
+
+동작은 이렇다. Claude Code가 남기는 세션 로그(JSONL)를 로컬 SQLite로 적재하고(시크릿은 마스킹), Haiku로 요약해 Obsidian 마크다운으로 내보낸다. 그러면 MCP 서버가 그 인덱스를 Claude에게 도구로 노출한다 — "예전에 이거 어떻게 했더라"를 Claude가 직접 검색한다. vault를 git으로 동기화하면 다른 노트북에서 내린 결정까지 회상된다.
+
+중앙 서버도, 월정액도, 벤더 종속도 없다. git 레포 하나에 로컬 Python(SQLite·FTS5)이 전부다. 어느 호스트에서나 독립으로 돈다.
+
+MCP 도구는 네 가지다. `search_history`(세션 전문검색), `recall_decisions`(과거 결정 회상), `recent_checkpoints`(다음 할 일), `search_vault`(크로스머신 회상).
+
+> `CLAUDE.md`는 오피니언 예시(개인 개발 원칙·한국어)다. 취향껏 갈아끼우면 된다.
 
 ---
 
@@ -85,7 +93,7 @@ export ANTHROPIC_API_KEY=sk-ant-...         # 요약 단계용 (또는 ~/.env)
 
 ### 보안 메모
 
-레포 시크릿 스캔: **하드코딩된 키·토큰·DB 크리덴셜 0건** (히스토리 매치는 마스킹 테스트의 가짜 키뿐). 레포는 **PRIVATE**. 운영 시 인지할 강화 포인트:
+레포 시크릿 스캔: **하드코딩된 키·토큰·DB 크리덴셜 0건** (매치는 마스킹 테스트의 가짜 키·플레이스홀더뿐). 이 레포는 개인 환경에서 **탈개인화·fresh 히스토리로 떠낸 공개 스냅샷**이다 — 키·vault·개인 설정은 포함되지 않는다. 운영 시 인지할 강화 포인트:
 
 - `settings.json`의 `skipAutoPermissionPrompt`·`skipDangerousModePermissionPrompt`(=true)가 bootstrap으로 **모든 신규 머신에 전파**됨 — 권한 프롬프트 자동 수락. 의도된 설정이나 새 환경에선 영향 범위 확인 권장.
 - `claude-dispatch.yml`은 `--dangerously-skip-permissions` + `repository_dispatch` 트리거 — PAT(`GLOBAL_SETTINGS_TOKEN`) 유출 시 러너 임의 실행 가능. 토큰 스코프 최소화·로테이션 권장.
@@ -171,17 +179,17 @@ docs/
 ### 로컬 ↔ 클라우드 동기화
 
 ```
-my-claude-global (GitHub, 단일 진실 소스)
+claude-recall (GitHub, 단일 진실 소스)
     │
-    ├── 로컬: ~/.claude/CLAUDE.md → 심링크 → ~/my-claude-global/CLAUDE.md
+    ├── 로컬: ~/.claude/CLAUDE.md → 심링크 → ~/claude-recall/CLAUDE.md
     │
     └── 클라우드: Actions 실행 시 checkout → ~/.claude/CLAUDE.md 복사
 ```
 
 규칙 수정 시:
 ```bash
-vi ~/my-claude-global/CLAUDE.md
-cd ~/my-claude-global && git add . && git commit -m "docs: 규칙 추가" && git push
+vi ~/claude-recall/CLAUDE.md
+cd ~/claude-recall && git add . && git commit -m "docs: 규칙 추가" && git push
 # 끝 — 다음 Actions 실행부터 자동 적용
 ```
 
@@ -211,7 +219,7 @@ cd ~/my-claude-global && git add . && git commit -m "docs: 규칙 추가" && git
 ## 레포 구조
 
 ```
-my-claude-global/
+claude-recall/
 ├── bootstrap.sh                   # 신규 시스템 전역 환경 설치 진입점
 ├── CLAUDE.md                      # 전역 개발 원칙 (슬림 코어)
 ├── settings.json                  # 설정 템플릿 (__HOME__ placeholder)
