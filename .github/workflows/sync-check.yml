@@ -52,7 +52,7 @@ jobs:
 
       - name: 이슈 생성 (문제 발견 시)
         if: env.HAS_ISSUES == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const missing = process.env.MISSING_FILES || '없음';
