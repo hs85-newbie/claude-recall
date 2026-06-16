@@ -1,8 +1,8 @@
-# my-claude-global
+# claude-recall
 
-Claude Code 전역 설정 중앙 관리 레포. 로컬(`~/.claude/`)과 클라우드(GitHub Actions)에서 동일한 규칙을 적용하고, Claude Code 세션 로그를 자체 RAG/위키로 적재하는 파이프라인을 관리합니다.
+clone → `bootstrap.sh` 한 번으로 **어느 머신에서든 동일한 Claude Code 전역 환경**을 세우고, **과거 세션·결정·체크포인트를 회상(RAG)**합니다. Claude Code 세션 로그를 로컬 SQLite/FTS로 적재하고 Obsidian vault로 내보내며, MCP로 Claude가 과거 맥락을 자동 회상합니다(로컬 + 크로스머신). 특정 인프라에 묶이지 않고 로컬/임의 호스트에서 독립 구동 — 중앙 서버 0.
 
-> **이력**: 초기엔 Paperclip(태스크 관리) · OpenSpace(스킬 학습 DB) 인프라와 연동했으나 두 서비스 종료(2026-06)로 제거됨. 현재는 **세션 아카이브 ingest 파이프라인**이 핵심이며, 특정 인프라에 묶이지 않고 로컬/임의 호스트에서 독립 구동됩니다.
+> `CLAUDE.md`는 **오피니언 예시**(개인 개발 원칙·한국어)입니다. 취향껏 편집해 쓰세요.
 
 ---
 
