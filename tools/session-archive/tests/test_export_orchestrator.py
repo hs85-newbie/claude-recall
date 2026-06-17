@@ -17,11 +17,12 @@ def populated_db() -> sqlite3.Connection:
     conn.executescript(
         """
         CREATE TABLE sessions (
-            session_id   TEXT PRIMARY KEY,
-            project_slug TEXT,
-            git_branch   TEXT,
-            started_at   TEXT,
-            ended_at     TEXT
+            session_id     TEXT PRIMARY KEY,
+            project_slug   TEXT,
+            git_branch     TEXT,
+            started_at     TEXT,
+            ended_at       TEXT,
+            promoted_to_l2 INTEGER NOT NULL DEFAULT 0
         );
         CREATE TABLE session_summaries (
             session_id           TEXT PRIMARY KEY,
@@ -47,7 +48,7 @@ def populated_db() -> sqlite3.Connection:
         """
     )
     conn.executemany(
-        "INSERT INTO sessions VALUES (?,?,?,?,?)",
+        "INSERT INTO sessions (session_id, project_slug, git_branch, started_at, ended_at) VALUES (?,?,?,?,?)",
         [
             ("sid12345", "proj-a", "main", "2026-04-25T00:00:00Z", "2026-04-25T01:00:00Z"),
             ("sid67890", "proj-b", "dev", "2026-04-26T00:00:00Z", "2026-04-26T01:00:00Z"),
