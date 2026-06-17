@@ -2,7 +2,7 @@
 
 - **상태**: Accepted
 - **결정일**: 2026-06-15
-- **결정권자**: cjons
+- **결정권자**: you
 - **선행 ADR**: [ADR-001](ADR-001-session-log-archive.md) (세션 로그 아카이브 — L1)
 - **관련 커밋**: `a1d80f1`(키 로더), `e23e0c3`(summarize 수정), `e78c40f`(체크포인트 ingest)
 

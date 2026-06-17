@@ -21,7 +21,7 @@
 - intent: 사용자가 하려고 한 것 (한 줄)
 - outcome: 실제 결과 (커밋/결정/포기)
 - decisions: [{decision, rationale}, ...] 최대 5개
-- tags: 프로젝트·기술·주제 키워드 (예: ["tms-stt", "STT", "policy"])
+- tags: 프로젝트·기술·주제 키워드 (예: ["acme-app", "STT", "policy"])
 - files_touched: 이 세션에서 편집/생성된 파일 경로
 - quality_score: 요약의 확신도 (0=모름, 10=명확)
 

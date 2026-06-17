@@ -17,7 +17,7 @@ from session_archive.exporter.frontmatter import (
 @pytest.mark.parametrize(
     "text,expected",
     [
-        ("tms-stt OCR 정책 결정. 화자분리는 CMI에서 처리.", "ko"),
+        ("acme-app OCR 정책 결정. 화자분리는 CMI에서 처리.", "ko"),
         ("이슈 분석 결과: STT pipeline에서 OCR 통합 정책 검토.", "ko"),
         ("プロジェクトの方針を決定しました。", "ja"),
         ("Decided to drop OCR for STT pipeline.", "en"),
@@ -34,7 +34,7 @@ def test_detect_lang(text: str, expected: str) -> None:
 # --- normalize_tag(s) ---
 
 def test_normalize_tag_lowercase_and_dash() -> None:
-    assert normalize_tag("TMS STT") == "tms-stt"
+    assert normalize_tag("ACME APP") == "acme-app"
 
 
 def test_normalize_tag_strip_special() -> None:
@@ -46,8 +46,8 @@ def test_normalize_tag_korean_preserved() -> None:
 
 
 def test_normalize_tags_dedupe_keep_order() -> None:
-    assert normalize_tags(["TMS", "tms", "Policy ", "policy", "정책"]) == [
-        "tms",
+    assert normalize_tags(["ACME", "acme", "Policy ", "policy", "정책"]) == [
+        "acme",
         "policy",
         "정책",
     ]
@@ -63,7 +63,7 @@ def test_normalize_tags_filters_empty() -> None:
 def sample_session() -> dict:
     return {
         "session_id": "83351383-6381-42c3-b6b6-3cd393e1d043",
-        "project_slug": "-Users-cjons-tms-stt",
+        "project_slug": "-Users-you-acme-app",
         "git_branch": "dev",
     }
 
@@ -71,12 +71,12 @@ def sample_session() -> dict:
 @pytest.fixture
 def sample_summary() -> dict:
     return {
-        "intent": "tms-stt OCR 정책 결정",
+        "intent": "acme-app OCR 정책 결정",
         "outcome": "OCR 유지 결정 + CMI 분리",
         "model": "claude-haiku-4-5-20251001",
         "quality_score": 8,
         "summarized_at": "2026-04-25T14:30:00Z",
-        "tags_json": '["tms-stt", "STT", "policy"]',
+        "tags_json": '["acme-app", "STT", "policy"]',
         "files_touched_json": '["src/a.ts", "src/b.ts"]',
     }
 
@@ -118,7 +118,7 @@ def test_build_lang_korean(sample_session: dict, sample_summary: dict) -> None:
 
 def test_build_tags_normalized(sample_session: dict, sample_summary: dict) -> None:
     fm = build_frontmatter(sample_session, sample_summary)
-    assert fm["tags"] == ["tms-stt", "stt", "policy"]
+    assert fm["tags"] == ["acme-app", "stt", "policy"]
 
 
 def test_build_handles_null_json(sample_session: dict, sample_summary: dict) -> None:
@@ -158,8 +158,8 @@ def test_serialize_iso_timestamp_unquoted() -> None:
 
 
 def test_serialize_project_slug_quoted_due_to_leading_dash() -> None:
-    out = serialize({"project": "-Users-cjons-tms-stt"})
-    assert '"-Users-cjons-tms-stt"' in out
+    out = serialize({"project": "-Users-you-acme-app"})
+    assert '"-Users-you-acme-app"' in out
 
 
 def test_serialize_null_value() -> None:

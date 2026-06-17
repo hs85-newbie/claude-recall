@@ -116,7 +116,7 @@ def test_sk_로_시작해도_짧으면_무시():
 
 
 def test_파일경로는_email_off에서_영향없음():
-    text = "see /Users/cjons/.claude/projects/foo.jsonl"
+    text = "see /Users/you/.claude/projects/foo.jsonl"
     r = mask_text(text)
     assert r.text == text
 

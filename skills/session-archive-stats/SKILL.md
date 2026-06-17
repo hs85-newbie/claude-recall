@@ -37,7 +37,7 @@ cd ~/my-claude-global/tools/session-archive && .venv/bin/session-archive stats
 
 | 질문 | 명령 |
 |---|---|
-| "tms 프로젝트만 보고 싶어" | `session-archive search "<keyword>" --project tms` |
+| "acme 프로젝트만 보고 싶어" | `session-archive search "<keyword>" --project acme` |
 | "세션 하나 자세히" | `session-archive show <session_id> --timeline` |
 | "백업 떠줘" | `session-archive backup` |
 

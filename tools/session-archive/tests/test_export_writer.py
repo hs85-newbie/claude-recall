@@ -38,12 +38,12 @@ def test_session_filename_uses_hash() -> None:
     expected_hash = hashlib.sha1(sid.encode()).hexdigest()[:8]
     row = {
         "session_id": sid,
-        "project_slug": "-Users-cjons-tms-stt",
+        "project_slug": "-Users-you-acme-app",
         "started_at": "2026-04-25T14:30:00Z",
     }
     assert (
         session_filename(row)
-        == f"sessions/2026-04-25--Users-cjons-tms-stt__{expected_hash}.md"
+        == f"sessions/2026-04-25--Users-you-acme-app__{expected_hash}.md"
     )
 
 

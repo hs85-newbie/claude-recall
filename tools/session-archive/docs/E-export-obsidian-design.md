@@ -16,7 +16,7 @@
 | Vault 자동 갱신 (cron/launchd) | session-log-archive (C) |
 | MCP write tool | session-log-archive (D) |
 | Vault 임베딩 + RAG/LoRA + LLM 추론 | oss-llm |
-| **메모리 시스템 (`~/.claude/projects/-Users-cjons/memory/`) 인덱싱** | **oss-llm (별도 LanceDB 테이블)** |
+| **메모리 시스템 (`~/.claude/projects/-Users-you/memory/`) 인덱싱** | **oss-llm (별도 LanceDB 테이블)** |
 
 E 단계는 **마크다운 vault 생성·갱신까지만** 책임. 임베딩·RAG는 oss-llm `~/oss-llm-poc/scripts/rag_ingest.py`가 vault 경로 인자로 받아서 별도 처리.
 
@@ -29,12 +29,12 @@ E 단계는 **마크다운 vault 생성·갱신까지만** 책임. 임베딩·RA
 - `MEMORY/` 심볼릭 링크 — **거부 (2026-04-27 결정)**
 
 **Why MEMORY/ symlink 거부**:
-- 메모리 시스템(`~/.claude/projects/-Users-cjons/memory/`)은 Claude Code 자동 로드 영역 + 사용자 직접 편집 영역. session-archive가 관리하지 않음
+- 메모리 시스템(`~/.claude/projects/-Users-you/memory/`)은 Claude Code 자동 로드 영역 + 사용자 직접 편집 영역. session-archive가 관리하지 않음
 - vault에 symlink 추가 시 vault 정의가 "export 산출물 + memory"로 확장 → 책임 경계 흐림
 - 단일 LanceDB 테이블에 섞이면 가중치·필터 분리 어려움
 - vault git repo에 broken symlink 가능성
 
-**대신**: oss-llm 측이 `rag_ingest.py ~/.claude/projects/-Users-cjons/memory --table memory`로 별도 LanceDB 테이블 인덱싱.
+**대신**: oss-llm 측이 `rag_ingest.py ~/.claude/projects/-Users-you/memory --table memory`로 별도 LanceDB 테이블 인덱싱.
 
 **검증 결과 (2026-04-28, oss-llm P0 v4)**: vault 7,841 + memory 669 dual-table 운영. P0 v4 5/5 통과. 두 테이블 거리 분포 다름 → **union 금지**, 분리 top-k + 출처 마커(⭐M / V) 패턴 정립 (`reference_dual_table_rag_pattern.md` 메모리 참조). Phase 1 종결.
 
@@ -73,7 +73,7 @@ sessions/YYYY-MM-DD-<projslug>__<sid8>.md
 ```yaml
 ---
 session_id: 83351383-6381-42c3-b6b6-3cd393e1d043
-project: -Users-cjons-tms-stt
+project: -Users-you-acme-app
 branch: dev
 summarized_at: 2026-04-25T14:30:00Z
 model: claude-haiku-4-5-20251001
@@ -81,7 +81,7 @@ quality_score: 8
 summary_level: L2
 kind: session
 lang: ko
-tags: [tms-stt, stt, policy]
+tags: [acme-app, stt, policy]
 files_touched: [src/a.ts, src/b.ts]
 ---
 ```
@@ -133,7 +133,7 @@ files_touched: [src/a.ts, src/b.ts]
 > {user content, 500자 절단}
 
 ## Backlinks
-- Project: [[projects/-Users-cjons-tms-stt]]
+- Project: [[projects/-Users-you-acme-app]]
 - Files: [[files/src-a]] [[files/src-b]]
 ```
 
@@ -186,7 +186,7 @@ write_state(now())
 `Backlinks` 섹션에만 wikilink 사용:
 
 ```python
-# project: -Users-cjons-tms-stt → [[projects/-Users-cjons-tms-stt]]
+# project: -Users-you-acme-app → [[projects/-Users-you-acme-app]]
 # file: src/a.ts                → [[files/src-a]]   (slash → dash, 확장자 제거)
 ```
 
@@ -253,7 +253,7 @@ session-archive export-obsidian [--vault PATH] [--since SUMMARIZED_AT] [--full] 
 ### v1.5 (다음 진입, 2026-04-27 결정)
 - **`decisions/` 디렉터리 자동 생성** ⭐ 1순위 (oss-llm Phase 1 P0 v2 피드백)
 - **`projects/` 디렉터리** ⭐ 2순위 (수동/반자동, 메모리 연계)
-- **`MEMORY/` 심볼릭 링크** ⭐ 3순위 (`~/.claude/projects/-Users-cjons/memory/` → `~/llm-wiki/MEMORY/`)
+- **`MEMORY/` 심볼릭 링크** ⭐ 3순위 (`~/.claude/projects/-Users-you/memory/` → `~/llm-wiki/MEMORY/`)
 - (선택) frontmatter `related_decisions`, `related_keywords` metadata 보강
 
 ### v2
@@ -337,7 +337,7 @@ source ~/oss-llm-poc/.venv/bin/activate
 python ~/oss-llm-poc/scripts/rag_ingest.py ~/llm-wiki/
 # → ~/oss-llm-poc/data/lancedb/vault 테이블 생성
 
-python ~/oss-llm-poc/scripts/rag_ask.py "tms-stt OCR 정책 결정 이유는?" --model qwen2.5-14b-instruct --k 5
+python ~/oss-llm-poc/scripts/rag_ask.py "acme-app OCR 정책 결정 이유는?" --model qwen2.5-14b-instruct --k 5
 ```
 
 `rag_ingest.py`의 vault 경로만 변경. session-log-archive는 vault 생성·갱신까지, oss-llm은 vault 소비. 양쪽 코드 결합도 0.

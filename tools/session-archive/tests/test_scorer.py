@@ -20,7 +20,7 @@ GOOD_OBJ = {
         {"decision": "Opus 쿼터 3회", "rationale": "비용 보호"},
     ],
     "tags": ["session-archive", "L2", "compare", "opus", "quota"],
-    "files_touched": ["/Users/cjons/my-claude-global/tools/session-archive/src/session_archive/scorer.py"],
+    "files_touched": ["/Users/you/my-claude-global/tools/session-archive/src/session_archive/scorer.py"],
     "quality_score": 8,
 }
 

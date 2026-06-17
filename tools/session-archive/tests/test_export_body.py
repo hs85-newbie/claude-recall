@@ -171,13 +171,13 @@ def test_wikilink_slug(src: str, expected: str) -> None:
 # --- backlinks ---
 
 def test_backlinks_with_project_and_files() -> None:
-    out = _section_backlinks("-Users-cjons-tms-stt", json.dumps(["src/a.ts"]))
-    assert "[[projects/-Users-cjons-tms-stt]]" in out
+    out = _section_backlinks("-Users-you-acme-app", json.dumps(["src/a.ts"]))
+    assert "[[projects/-Users-you-acme-app]]" in out
     assert "[[files/src-a]]" in out
 
 
 def test_backlinks_only_project() -> None:
-    out = _section_backlinks("-Users-cjons-tms-stt", "[]")
+    out = _section_backlinks("-Users-you-acme-app", "[]")
     assert "Project:" in out
     assert "File:" not in out
 
@@ -192,11 +192,11 @@ def test_backlinks_empty() -> None:
 def test_build_body_contains_all_7_sections() -> None:
     session = {
         "session_id": "sid",
-        "project_slug": "-Users-cjons-tms-stt",
+        "project_slug": "-Users-you-acme-app",
         "git_branch": "dev",
     }
     summary = {
-        "intent": "tms-stt OCR 정책",
+        "intent": "acme-app OCR 정책",
         "outcome": "OCR 유지",
         "decisions_json": json.dumps([{"decision": "유지", "rationale": "품질"}]),
         "files_touched_json": json.dumps(["src/a.ts"]),
@@ -204,7 +204,7 @@ def test_build_body_contains_all_7_sections() -> None:
     }
     body = build_body(session, summary, ["원문 1"])
     # H1 + 7 H2 섹션
-    assert body.startswith("# tms-stt OCR 정책")
+    assert body.startswith("# acme-app OCR 정책")
     for h in ["## Intent", "## Outcome", "## Decisions", "## Files Touched",
               "## Related Commits", "## User 원문", "## Backlinks"]:
         assert h in body

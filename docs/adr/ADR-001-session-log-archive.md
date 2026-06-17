@@ -3,7 +3,7 @@
 - **상태**: Accepted
 - **결정일**: 2026-04-15
 - **승인일**: 2026-04-15
-- **결정권자**: cjons
+- **결정권자**: you
 - **관련 세션**: session-log-archive
 - **후속 ADR**: (L3 CKG 단계 진입 시 ADR-002로 분리 예정)
 
@@ -21,7 +21,7 @@
 | 총 용량 | 389 MB |
 | 프로젝트 디렉토리 수 | 60+ (worktree 포함) |
 | 엔트리 타입 | user / assistant / system / attachment / file-history-snapshot / queue-operation |
-| 경로 인코딩 규칙 | `cwd`의 `/` → `-`로 치환한 디렉토리명 (예: `/Users/cjons/Documents/dev` → `-Users-cjons-Documents-dev`) |
+| 경로 인코딩 규칙 | `cwd`의 `/` → `-`로 치환한 디렉토리명 (예: `/Users/you/Documents/dev` → `-Users-you-Documents-dev`) |
 
 ### 스키마 (원본 JSONL 1 라인 = 1 이벤트)
 
@@ -32,7 +32,7 @@
   "sessionId": "83351383-6381-42c3-b6b6-3cd393e1d043",
   "uuid": "d6e508c6-...",
   "parentUuid": "...",       // 이전 이벤트 UUID (null = 세션 시작)
-  "cwd": "/Users/cjons",
+  "cwd": "/Users/you",
   "gitBranch": "HEAD",
   "message": { "role": "user" | "assistant", "content": "..." | [{"type":"text","text":"..."}] }
 }
@@ -45,7 +45,7 @@
 
 Raw JSONL은 이미 존재하지만 다음이 불가능하다:
 
-1. **크로스 세션 검색** — "지난주 tms-stt에서 STT 품질 관련 지시 뭐 했었지?" 같은 질문에 즉답 불가
+1. **크로스 세션 검색** — "지난주 acme-app에서 STT 품질 관련 지시 뭐 했었지?" 같은 질문에 즉답 불가
 2. **프롬프트 → 커밋 매핑** — 어떤 지시가 어떤 코드 변경을 만들었는지 추적 불가
 3. **의도/결과 요약** — 세션당 수백~수천 이벤트를 매번 원본으로 읽을 수 없음
 4. **프라이버시 게이트 부재** — 토큰·시크릿이 섞여 있어도 지금 구조로는 필터링 불가
@@ -106,8 +106,8 @@ SQLite 선택 이유:
 -- 세션 단위 메타
 CREATE TABLE sessions (
   session_id         TEXT PRIMARY KEY,   -- Claude Code sessionId
-  project_dir        TEXT NOT NULL,      -- cwd 원본 (예: /Users/cjons/tms-project)
-  project_slug       TEXT NOT NULL,      -- 경로 인코딩 (예: -Users-cjons-tms-project)
+  project_dir        TEXT NOT NULL,      -- cwd 원본 (예: /Users/you/acme-svc)
+  project_slug       TEXT NOT NULL,      -- 경로 인코딩 (예: -Users-you-acme-svc)
   started_at         TEXT NOT NULL,      -- ISO8601
   ended_at           TEXT,               -- 마지막 이벤트 시각
   event_count        INTEGER NOT NULL DEFAULT 0,
@@ -164,10 +164,10 @@ CREATE TABLE file_snapshots (
 ```sql
 CREATE TABLE session_summaries (
   session_id     TEXT PRIMARY KEY REFERENCES sessions(session_id),
-  intent         TEXT NOT NULL,        -- "tms STT OCR 통합 제거 논의" 같은 한 줄
+  intent         TEXT NOT NULL,        -- "acme STT OCR 통합 제거 논의" 같은 한 줄
   outcome        TEXT,                 -- "결정: OCR 유지 / 커밋 없음"
   decisions_json TEXT,                 -- [{"decision":"...","rationale":"..."}]
-  tags_json      TEXT,                 -- ["tms","stt","policy"]
+  tags_json      TEXT,                 -- ["acme","stt","policy"]
   related_commits_json TEXT,           -- ["sha1","sha2"]
   files_touched_json TEXT,             -- ["src/a.ts","src/b.ts"]
   model          TEXT,                 -- 요약 생성에 쓴 모델
@@ -224,7 +224,7 @@ scan() → filter() → parse() → mask() → upsert() → fts_index()
 | JWT | `eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+` | `[REDACTED:JWT]` |
 | 이메일 | `[\w.+-]+@[\w-]+\.[\w.-]+` | `[REDACTED:EMAIL]` (옵션, 기본 OFF — 본인 이메일만 예외 가능) |
 | 환경변수 라인 | `(?i)(password\|secret\|api[_-]?key\|token)\s*[:=]\s*\S+` | 키는 유지, 값만 `[REDACTED]` |
-| 파일 경로 중 홈 | `/Users/cjons/` | 유지 (로컬 전용이므로 PII로 간주 안 함) |
+| 파일 경로 중 홈 | `/Users/you/` | 유지 (로컬 전용이므로 PII로 간주 안 함) |
 
 **마스킹 원칙**:
 - 마스킹 발생 시 `events.masked = 1` 플래그, 개수는 `mask_stats` 테이블에 집계
@@ -252,7 +252,7 @@ session-archive ingest --full       # 전체 재적재
 session-archive summarize           # L2 요약 생성 (트리거 조건 만족한 세션)
 session-archive summarize <session_id>  # 수동 승격
 session-archive search "STT OCR"    # FTS 검색 (L1)
-session-archive search "STT" --project tms-stt --since 7d
+session-archive search "STT" --project acme-app --since 7d
 session-archive show <session_id>   # 세션 전체 (요약 + 이벤트 타임라인)
 session-archive stats               # 프로젝트별 세션 수, 용량, 최근 활동
 session-archive backup              # SQLite backup
@@ -310,7 +310,7 @@ session-archive gc                  # 보관 주기 정리
 ## 4. 결과·영향 (Consequences)
 
 ### 긍정
-- 크로스 세션 검색 가능 → "지난주 tms-stt에 뭐 지시했지" 즉답
+- 크로스 세션 검색 가능 → "지난주 acme-app에 뭐 지시했지" 즉답
 - 프롬프트↔커밋 매핑 → 의사결정 근거 추적
 - MEMORY.md 오염 방지 (명확한 역할 분리)
 - L3(CKG) 진입 시 깨끗한 데이터 기반
@@ -370,7 +370,7 @@ session-archive gc                  # 보관 주기 정리
 
 ## 7. 참고
 
-- `/Users/cjons/my-claude-global/docs/documentation-rules.md`
-- `/Users/cjons/my-claude-global/docs/testing-standards.md`
-- `/Users/cjons/my-claude-global/docs/error-handling.md`
+- `/Users/you/my-claude-global/docs/documentation-rules.md`
+- `/Users/you/my-claude-global/docs/testing-standards.md`
+- `/Users/you/my-claude-global/docs/error-handling.md`
 - Claude Code 세션 파일 실측: `~/.claude/projects/**/*.jsonl` (307 files / 389 MB / 2026-04-15)
