@@ -90,7 +90,8 @@ llm-wiki (단일 repo)
 |---|---|---|
 | 검색(retrieval) | `session-archive search`(FTS5, 세션+체크포인트 통합) | ✅ 가능 |
 | 시맨틱 | 로컬 임베딩(sqlite-vec 등) — 서버 불필요 | 후보 |
-| LLM 회상 | Claude용 MCP(과거 결정 자동 호출) 또는 `ask` 서브커맨드 | 후보 |
+| LLM 회상 | Claude용 MCP(과거 결정 자동 호출) 또는 `ask` 서브커맨드 | ✅ search_vault MCP |
+| 오답노트 회상 | gstack `learnings.jsonl` → `export-learnings` → vault `learnings/<machine>/`, `search_vault`(kind=learnings)로 grep 회상 | ✅ 가능 |
 | 사람 탐색 | Obsidian(`~/llm-wiki`, 그래프/태그) | ✅ 가능 |
 
 ## 5. 결과 (Consequences)

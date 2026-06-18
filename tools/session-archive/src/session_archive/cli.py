@@ -25,6 +25,7 @@ from .checkpoints import ingest_checkpoints
 from .compare import compare_candidates
 from .db import connect, get_db_path
 from .ingest import CLAUDE_PROJECTS_ROOT, ingest_all
+from .learnings import export_learnings
 from .local_client import ping as local_ping
 from .prompt import build_prompt
 from .recall import search_checkpoints, search_events
@@ -134,6 +135,20 @@ def _cmd_ingest_checkpoints(args: argparse.Namespace) -> int:
         f"[ingest-checkpoints] {dt:.1f}s scanned={stats.files_scanned} "
         f"upserted={stats.upserted} skip={stats.skipped_unchanged} "
         f"mask={stats.mask_hits} vault_written={written}"
+    )
+    if stats.errors:
+        print(f"  ⚠️ errors={len(stats.errors)}: {stats.errors[:3]}")
+    return 0
+
+
+def _cmd_export_learnings(args: argparse.Namespace) -> int:
+    t0 = datetime.now()
+    stats = export_learnings(Path(args.vault).expanduser())
+    dt = (datetime.now() - t0).total_seconds()
+    print(
+        f"[export-learnings] {dt:.1f}s scanned={stats.files_scanned} "
+        f"projects={stats.projects_written} learnings={stats.learnings_total} "
+        f"mask={stats.mask_hits}"
     )
     if stats.errors:
         print(f"  ⚠️ errors={len(stats.errors)}: {stats.errors[:3]}")
@@ -417,6 +432,15 @@ def main(argv: list[str] | None = None) -> int:
         help="체크포인트 미러 vault (기본 ~/llm-wiki, 빈 값이면 미러 생략)",
     )
     pic.set_defaults(func=_cmd_ingest_checkpoints)
+
+    pel = sub.add_parser(
+        "export-learnings",
+        help="gstack learnings.jsonl → vault/learnings 미러 (오답노트 크로스머신 회상)",
+    )
+    pel.add_argument(
+        "--vault", default="~/llm-wiki", help="vault 디렉터리 (기본 ~/llm-wiki)"
+    )
+    pel.set_defaults(func=_cmd_export_learnings)
 
     ps = sub.add_parser("search", help="FTS 기반 메시지 검색")
     ps.add_argument("query")

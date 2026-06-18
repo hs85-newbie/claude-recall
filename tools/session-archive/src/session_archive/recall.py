@@ -21,7 +21,7 @@ from .db import get_db_path
 DEFAULT_VAULT_ROOT = Path(
     os.environ.get("SESSION_ARCHIVE_VAULT", str(Path.home() / "llm-wiki"))
 ).expanduser()
-_VAULT_KINDS = ("sessions", "decisions", "checkpoints")
+_VAULT_KINDS = ("sessions", "decisions", "checkpoints", "learnings")
 
 _FTS_OPS = {"AND", "OR", "NOT", "NEAR"}
 _SINCE_RE = re.compile(r"^(\d+)([dhm])$")

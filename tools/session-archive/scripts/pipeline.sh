@@ -49,6 +49,11 @@ run_stage() {
         echo "[WARN] CHECKPOINTS failed"
     fi
 
+    # 오답노트: gstack learnings.jsonl → vault/learnings 미러 (push 전에 갱신).
+    if ! run_stage LEARNINGS "$BIN" export-learnings; then
+        echo "[WARN] LEARNINGS failed"
+    fi
+
     # 크로스머신 운반: 로컬 export를 vault에 송신(push) → 타 머신 변경 수신(pull).
     # 순서 = export→push→pull (단일 작성자 불변식상 로컬 export가 pull에 덮이지 않게).
     if ! run_stage VAULT_PUSH "$BIN" vault-push; then
