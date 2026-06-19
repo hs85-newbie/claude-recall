@@ -1,5 +1,7 @@
 # claude-recall
 
+> 🚀 **처음이세요?** 새 컴퓨터에서 전제도구 설치부터 일상 사용까지 한 단계씩 따라하는 가이드 → **[GETTING_STARTED.md](GETTING_STARTED.md)**
+
 Claude Code는 세션이 끝나면 다 잊는다. 어제 왜 그 라이브러리를 골랐는지, 저 버그를 어떻게 잡았는지, 다른 노트북에서 뭘 하다 왔는지 — 다음 대화엔 아무것도 안 남는다. claude-recall은 그 기억을 붙여준다.
 
 clone하고 `bootstrap.sh` 한 번이면 두 개가 깔린다. 어느 머신에서든 똑같이 재현되는 Claude Code 전역 환경(규칙·설정·hooks·스킬), 그리고 과거 세션·결정·체크포인트를 검색하고 회상하는 RAG 계층이다.
