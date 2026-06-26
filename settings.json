@@ -81,6 +81,17 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__HOME__/.claude/hooks/git-safety-guard.sh"
+          }
+        ]
+      }
     ]
   },
   "extraKnownMarketplaces": {
