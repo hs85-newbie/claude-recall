@@ -49,6 +49,28 @@
   },
   "model": "opus",
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__HOME__/.claude/hooks/session-handoff-load.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__HOME__/.claude/hooks/session-handoff-save.sh"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "matcher": "(요약해|번역해|포매팅|포맷팅|정렬해|변환해|추출해)",
