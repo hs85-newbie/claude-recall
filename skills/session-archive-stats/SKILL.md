@@ -15,7 +15,7 @@ allowed-tools:
 ## 실행
 
 ```bash
-cd ~/my-claude-global/tools/session-archive && .venv/bin/session-archive stats
+cd ~/claude-recall/tools/session-archive && .venv/bin/session-archive stats
 ```
 
 ## 채팅 보고 형식

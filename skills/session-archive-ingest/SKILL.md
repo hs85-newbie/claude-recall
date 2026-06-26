@@ -21,7 +21,7 @@ allowed-tools:
 ## 실행
 
 ```bash
-cd ~/my-claude-global/tools/session-archive && .venv/bin/session-archive ingest
+cd ~/claude-recall/tools/session-archive && .venv/bin/session-archive ingest
 ```
 
 ## 결과 요약 (채팅 보고 형식)
@@ -43,7 +43,7 @@ cd ~/my-claude-global/tools/session-archive && .venv/bin/session-archive ingest
 |---|---|
 | `no such column` / FTS 에러 | 쿼리 sanitize 문제. CLI 코드 확인 |
 | `IntegrityError: NOT NULL` | 세션 메타 추출 실패. 원본 JSONL 구조 변경 가능성 — `src/session_archive/ingest.py` 재검토 |
-| venv 손상 / `No module named` | `cd ~/my-claude-global/tools/session-archive && rm -rf .venv && python3 -m venv .venv && .venv/bin/pip install -e .` |
+| venv 손상 / `No module named` | `cd ~/claude-recall/tools/session-archive && rm -rf .venv && python3 -m venv .venv && .venv/bin/pip install -e .` |
 | 첫 적재(21분+) | 정상. 다음부터는 mtime 증분. |
 
 ## 다음 액션 제안 (선택)

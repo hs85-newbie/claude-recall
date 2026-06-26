@@ -118,7 +118,7 @@
       }
     },
     "session-archive-recall": {
-      "command": "__HOME__/my-claude-global/tools/session-archive/.venv/bin/session-archive-mcp"
+      "command": "__HOME__/claude-recall/tools/session-archive/.venv/bin/session-archive-mcp"
     }
   },
   "autoConnectIde": false,

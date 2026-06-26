@@ -92,7 +92,7 @@ L0: Raw JSONL (기존, 불변)
 | L0 | JSONL (기존) | `~/.claude/projects/**/*.jsonl` | Claude Code가 관리 |
 | L1 | SQLite | `~/.claude-archive/sessions.db` | 주 1회 `.backup` 명령으로 `~/.claude-archive/backups/` |
 | L2 | SQLite 동일 DB의 별도 테이블 | 동일 | 동일 |
-| 파이프라인 코드 | Python | `~/my-claude-global/tools/session-archive/` | git |
+| 파이프라인 코드 | Python | `~/claude-recall/tools/session-archive/` | git |
 
 SQLite 선택 이유:
 - 단일 파일, 로컬 전용, 백업 용이
@@ -361,7 +361,7 @@ session-archive gc                  # 보관 주기 정리
 
 ## 6. 결정된 사항 (Resolved 2026-04-15)
 
-1. **파이프라인 코드 위치**: `my-claude-global/tools/session-archive/` 하위 (확정)
+1. **파이프라인 코드 위치**: `claude-recall/tools/session-archive/` 하위 (확정)
 2. **MCP 노출 범위**: 검색(read) + 승격(write) 둘 다 (확정). 승격은 별도 write tool로 분리해 실수 방지
 3. **이메일 마스킹 기본값**: OFF (확정). 본인 환경 전용이므로 노이즈만 늘어남
 4. **L3 CKG 데이터 모델**: 이번 ADR 범위 밖 → 별도 ADR-002에서 다룸
@@ -370,7 +370,7 @@ session-archive gc                  # 보관 주기 정리
 
 ## 7. 참고
 
-- `/Users/you/my-claude-global/docs/documentation-rules.md`
-- `/Users/you/my-claude-global/docs/testing-standards.md`
-- `/Users/you/my-claude-global/docs/error-handling.md`
+- `/Users/you/claude-recall/docs/documentation-rules.md`
+- `/Users/you/claude-recall/docs/testing-standards.md`
+- `/Users/you/claude-recall/docs/error-handling.md`
 - Claude Code 세션 파일 실측: `~/.claude/projects/**/*.jsonl` (307 files / 389 MB / 2026-04-15)
