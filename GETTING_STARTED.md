@@ -1,9 +1,9 @@
 # 시작하기 — 새 컴퓨터에서 끝까지 따라하기
 
-이 문서는 **새 컴퓨터에 Claude Code를 막 깔았고, 그 다음에 뭘 해야 할지 모르는 사람**을 위한 가이드입니다.
-위에서부터 명령어를 **그대로 복사해서 붙여넣기만** 하면 끝납니다.
-각 단계마다 **예상 출력**을 같이 적어 뒀으니, 비슷하게 나오면 정상입니다.
-("이 정도는 알겠지" 같은 가정은 하지 않습니다.)
+이 문서는 새 컴퓨터에 Claude Code를 막 깔았는데 그다음 뭘 해야 할지 모르는 분을 위한 가이드입니다.
+위에서부터 명령어를 그대로 복사해 붙여넣기만 하면 됩니다.
+단계마다 예상 출력을 같이 적어 뒀으니 그와 비슷하게 나오면 정상입니다.
+("이 정도는 알겠지" 하고 넘어가는 일은 없습니다.)
 
 > claude-recall이 해주는 일 한 줄 요약: **Claude Code를 모든 컴퓨터에서 똑같은 규칙·설정으로 쓰게 만들고, 과거 대화를 검색·회상할 수 있게 해주는 전역 환경 + RAG 계층**입니다.
 
@@ -25,13 +25,13 @@
 [4~] 검색 · 회상 · (선택) 크로스머신/로컬LLM
 ```
 
-각 단계는 **앞 단계가 끝나야 다음으로** 넘어갑니다. 순서대로 진행하세요.
+각 단계는 앞 단계가 끝나야 다음으로 넘어갑니다. 순서대로 진행하세요.
 
 ---
 
 ## 0단계 — 준비물 설치
 
-`bootstrap.sh`(다음 단계)는 시작할 때 아래 도구가 다 있는지 자동으로 확인하고, **하나라도 없으면 안내만 하고 멈춥니다**(도구를 대신 깔아주지는 않음). 그래서 먼저 이 5가지를 깔아야 합니다.
+`bootstrap.sh`(다음 단계)는 시작할 때 아래 도구가 다 있는지 자동으로 확인하고, 하나라도 없으면 안내만 하고 멈춥니다(도구를 대신 깔아주지는 않음). 그러니 이 5가지를 먼저 깔아 두세요.
 
 > **OS 안내**: 이 가이드는 **macOS / Linux** 기준입니다. Windows는 WSL(Windows Subsystem for Linux) 안에서 진행하세요.
 
@@ -77,7 +77,7 @@ claude
 
 ### 0-4. Anthropic API 키 발급
 
-이 환경의 **요약(summarize) 단계**가 Anthropic API를 씁니다. (Claude Code 로그인과는 별개의 키입니다.)
+이 환경의 요약(summarize) 단계가 Anthropic API를 씁니다. (Claude Code 로그인과는 별개의 키입니다.)
 
 1. [console.anthropic.com](https://console.anthropic.com) 접속 → 로그인
 2. 왼쪽 **API Keys** → **Create Key** → 키 복사 (`sk-ant-...`로 시작)
@@ -116,8 +116,8 @@ cd claude-recall
 [bootstrap] 전제조건 충족 (git·python3.11+·bun·node·claude)
 [bootstrap] CLAUDE.md → /Users/you/claude-recall/CLAUDE.md 심링크 생성
 [bootstrap] settings.json 렌더링 완료 (백업: settings.json.bak-20260619-153000)
-[bootstrap] hooks 배치: 2개
-[bootstrap] custom agents 배치: 5개
+[bootstrap] hooks 배치: 5개
+[bootstrap] custom agents 배치: 7개
 [bootstrap] session-archive 스킬 배치
 [bootstrap] gstack clone...
 [bootstrap] gstack 스킬 설치 완료
@@ -134,7 +134,7 @@ cd claude-recall
 |---|---|
 | `CLAUDE.md` 심링크 | 전역 개발 규칙 (모든 프로젝트 공통) |
 | `settings.json` | Claude 권한·모델·hooks 설정 |
-| `hooks/`, `agents/` | 자동화 훅 2개 + 전용 에이전트 5개(coder·explore·plan 등) |
+| `hooks/`, `agents/` | 자동화 훅 5개(인계 저장/복원·git 안전가드 등) + 전용 에이전트 7개(coder·explore·plan·critic·virtual-me 등) |
 | gstack 스킬 | `/ship`, `/qa`, `/review` 등 강력한 워크플로 스킬 모음 |
 | session-archive | 과거 대화를 검색 가능하게 적재하는 RAG 파이프라인 |
 | im-not-ai *(선택)* | 한글 글 다듬는 Humanize 스킬 — `IM_NOT_AI_REMOTE` 설정 시에만 |
@@ -147,7 +147,7 @@ cd claude-recall
 
 ## 2단계 — Claude Code 재시작 + 확인
 
-설정·스킬·에이전트는 **Claude Code를 다시 켜야** 로드됩니다.
+설정·스킬·에이전트는 Claude Code를 다시 켜야 로드됩니다.
 
 1. 실행 중인 Claude Code를 완전히 종료
 2. 다시 실행: `claude`
@@ -165,7 +165,7 @@ cd claude-recall
 
 ## 3단계 — 세션 아카이브 파이프라인 첫 실행
 
-`bootstrap.sh`가 `tools/session-archive`에 파이썬 환경(venv)을 만들어 뒀습니다. 이 파이프라인이 **지난 Claude 대화를 검색 가능하게** 만들어 줍니다. 3개 단계입니다.
+`bootstrap.sh`가 `tools/session-archive`에 파이썬 환경(venv)을 만들어 뒀습니다. 이 파이프라인을 거치면 지난 Claude 대화를 검색할 수 있게 됩니다. 모두 3단계입니다.
 
 ```bash
 cd ~/claude-recall/tools/session-archive
@@ -282,6 +282,47 @@ export LLM_WIKI_REMOTE=git@github.com:you/your-vault.git
 | ≥ 64GB | `openai/gpt-oss-20b` |
 
 > Apple Silicon(M칩)은 MLX 런타임 자동 선택. `LOCAL_LLM_MODEL=...`로 모델 강제 지정 가능.
+
+---
+
+## 직접 쓰는 도구 — 스킬·에이전트·훅 (부르는 법)
+
+bootstrap이 깐 도구는 세 종류고, 각각 부르는 법이 다릅니다. 핵심만 짚으면:
+
+- **스킬**은 `/이름`으로 부르거나, 그냥 한국어로 말해도 됩니다 (둘 다 작동).
+- **에이전트**는 슬래시 없이 말로 시키면 Claude가 알맞은 전문가에게 넘겨줍니다.
+- **훅**은 따로 부를 필요가 없습니다. 정해진 순간에 알아서 작동하니까요.
+
+### 스킬 — `/명령` 또는 그냥 말로 (둘 다 됨)
+
+| 하고 싶은 것 | 슬래시로 | 또는 그냥 이렇게 말해도 |
+|---|---|---|
+| 빌드 전 내 의도 점검받기 | `/grill-me` | "빌드 전에 내 의도 좀 캐물어줘" |
+| 다음 세션에 작업 넘기기 | `/handoff` | "다음 세션 위해 인계 남겨줘" |
+| 결과물 제대로 됐는지 검증 | `/verify-layer` | "이거 납품 전에 검증해줘" |
+| 지난 대화 적재 | `/session-archive-ingest` | "세션 적재해줘" |
+| 아카이브 현황 | `/session-archive-stats` | "아카이브 현황 보여줘" |
+
+> 슬래시는 `/`만 쳐도 목록이 뜹니다. 외우기 싫으면 그냥 한국어로 말하세요. 비슷하게만 말해도 Claude가 알맞은 스킬을 띄워 줍니다.
+
+### 에이전트 — 말로 시키면 됨 (슬래시 없음)
+
+| 에이전트 | 이럴 때 | 이렇게 말하기 |
+|---|---|---|
+| `virtual-me` (가상의 나) | 중요한 결정 직전, "나라면 어떻게 볼까" | "이거 나라면 승인할까?", "비용 관점에서 판단해줘" |
+| `critic` (비판자) | 만든 걸 깐깐하게 검토받기 | "이 코드 비판적으로 봐줘" |
+
+> `virtual-me`는 당신을 흉내 내 판단을 그려 주는 도우미입니다. 단 발행·결제 같은 건 '승인'하지 않습니다. 최종 결정은 언제나 본인 몫입니다.
+> 쓸수록 똑똑해집니다: 당신이 `CLAUDE.md`·`MEMORY.md`를 채울수록 `virtual-me`·`grill-me`가 점점 **당신 기준**으로 판단합니다(처음엔 일반론 → 나중엔 당신처럼).
+
+### 훅 — 자동 (아무것도 안 해도 됨)
+
+| 훅 | 언제 | 뭘 해주나 |
+|---|---|---|
+| 세션 인계 (자동 저장/복원) | 세션 끝날 때 / 새로 켤 때 | 하던 작업을 자동 저장하고, 다음에 켜면 자동으로 불러옵니다 |
+| `git-safety-guard` | 위험한 git 명령 직전 | `reset --hard`·강제 push처럼 되돌리기 힘든 명령을 가로채 "정말 할까요?" 물어봅니다 |
+
+> 훅은 설치만 되면 알아서 돕니다. 특히 인계 훅 덕분에 `/context-restore`를 손으로 칠 필요가 없습니다. 새 세션을 켜면 직전 작업이 저절로 떠 있으니까요.
 
 ---
 
