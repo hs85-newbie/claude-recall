@@ -69,8 +69,8 @@ export ANTHROPIC_API_KEY=sk-ant-...         # 요약 단계용 (또는 ~/.env)
 |---|---|
 | 1 | `~/.claude/CLAUDE.md` → 레포 심링크 |
 | 2 | `settings.json` 렌더링(`__HOME__` 치환) → `~/.claude/settings.json` (기존 백업, `settings.local.json`은 보존) |
-| 3 | `hooks/` 배치 (route-to-local, local-llm-gate) |
-| 4 | custom `agents/` 배치 (coder·explore·plan·local-ops·quick-lookup) |
+| 3 | `hooks/` 배치 (route-to-local · local-llm-gate · git-safety-guard · session-handoff-load/save) |
+| 4 | custom `agents/` 배치 (coder·explore·plan·local-ops·quick-lookup · critic · virtual-me) |
 | 5 | session-archive 스킬 배치 |
 | 6 | gstack clone + `./setup --host claude` (스킬 일괄 설치) |
 | 7 | im-not-ai(Humanize KR) clone + `install.sh` (humanize 스킬·에이전트) |
@@ -161,6 +161,59 @@ cd tools/session-archive
 
 ---
 
+## 스킬·에이전트·훅 사용법
+
+이 레포가 더하는 기능은 **세 가지 방식**으로 작동합니다 — 부르는 법이 다릅니다.
+
+| 종류 | 부르는 법 | 한 줄 |
+|---|---|---|
+| **스킬** | `/이름` 슬래시 명령 **또는** 평범한 한국어 지시 (둘 다 됨) | 작업 절차를 묶은 워크플로 |
+| **에이전트** | 한국어로 지목/위임 (슬래시 아님) | 별개 문맥에서 도는 전문 일꾼 |
+| **훅** | **자동** (사용자가 부르지 않음) | 특정 시점에 끼어드는 자동 가드 |
+
+### 스킬 — 슬래시 또는 자연어 (둘 다 됨)
+
+스킬은 두 가지로 부릅니다. **(1) 슬래시 명령**으로 명시 실행하거나, **(2) 트리거 문구를 평범한 대화에 넣으면** Claude가 알아서 그 스킬을 띄웁니다. 결과는 같습니다.
+
+| 스킬 | 슬래시 | 자연어 예시 |
+|---|---|---|
+| `grill-me` | `/grill-me` | "빌드 전에 내 의도 좀 캐물어줘", "이 계획 압박테스트 해줘" |
+| `handoff` | `/handoff` | "다음 세션 위해 인계 남겨줘", "세션 마무리 정리해줘" |
+| `verify-layer` | `/verify-layer` | "이 결과물 제대로 됐는지 검증해줘", "납품 전 비판 패널 돌려줘" |
+| `session-archive-ingest` | `/session-archive-ingest` | "세션 적재해줘" |
+| `session-archive-stats` | `/session-archive-stats` | "아카이브 현황 보여줘" |
+
+> 트리거 문구는 각 스킬 `SKILL.md` 상단의 description에 적혀 있습니다. 정확히 외울 필요 없이 비슷하게 말하면 잡힙니다.
+
+### 에이전트 — 한국어로 지목 (슬래시 아님)
+
+에이전트는 슬래시로 부르지 않습니다. **그냥 말로 시키면** 메인 세션이 알맞은 에이전트에게 일을 넘깁니다(또는 자동 위임).
+
+| 에이전트 | 언제 / 어떻게 | 자연어 예시 |
+|---|---|---|
+| `virtual-me` | 되돌리기 어려운 결정 직전, "내 관점에서 봐줘" | "이거 나라면 승인할까?", "비용 관점에서 판단해줘" |
+| `critic` | 산출물 적대적 검토 (주로 verify-layer가 자동 소환) | "이 코드 비판적으로 봐줘", "이 번역 반증해봐" |
+| `coder`·`explore`·`plan`·`local-ops`·`quick-lookup` | 코드 수정·탐색·설계 (메인이 자동 위임) | "이 함수 구현해줘", "이 버그 어디서 나는지 찾아줘" |
+
+> `virtual-me`는 **초안자**입니다 — 판단을 그려줄 뿐 외부 발행·머지·결제를 '승인'하지 않습니다. 최종 결정은 항상 사람.
+> 페르소나는 고정이 아닙니다. 당신의 `CLAUDE.md`·`MEMORY.md`가 채워질수록 `virtual-me`·`grill-me`가 점점 당신 기준으로 판단합니다(처음엔 범용 → 쓸수록 당신처럼).
+
+### 훅 — 자동 (부를 필요 없음)
+
+훅은 설치되면 특정 시점에 **저절로** 작동합니다. 명령도 지시도 필요 없습니다.
+
+| 훅 | 작동 시점 | 하는 일 |
+|---|---|---|
+| `session-handoff-save.sh` | 세션 끝날 때 | git 상태 + 마지막 지시를 인계 메모로 자동 저장 |
+| `session-handoff-load.sh` | 새 세션 시작할 때 | 직전 인계 메모를 자동으로 대화에 주입 (수동 restore 불필요) |
+| `git-safety-guard.sh` | `git` 명령 실행 직전 | `reset --hard`·force push·`clean -f` 등 파괴적 명령을 가로채 확인창 띄움 |
+| `route-to-local.sh` | "요약해/번역해" 등 입력 시 | 단순 작업을 로컬 LLM으로 라우팅 (설정 시) |
+| `local-llm-gate.sh` | 로컬 LLM 호출 전 | 게이트 점검 |
+
+> 인계 훅 둘이 짝입니다 — 끝낼 때 저장, 시작할 때 복원. 더 풍부한 인계가 필요하면 `/handoff`로 직접 덮어씁니다.
+
+---
+
 ## 전역 규칙
 
 `CLAUDE.md`가 슬림 코어, `docs/`가 상세 규칙(@import 참조)입니다.
@@ -225,11 +278,14 @@ claude-recall/
 ├── bootstrap.sh                   # 신규 시스템 전역 환경 설치 진입점
 ├── CLAUDE.md                      # 전역 개발 원칙 (슬림 코어)
 ├── settings.json                  # 설정 템플릿 (__HOME__ placeholder)
-├── hooks/                         # route-to-local · local-llm-gate
-├── agents/                        # custom agents (coder·explore·plan·local-ops·quick-lookup)
+├── hooks/                         # route-to-local · local-llm-gate · git-safety-guard · session-handoff-load/save
+├── agents/                        # custom agents (coder·explore·plan·local-ops·quick-lookup · critic · virtual-me)
 ├── scripts/                       # setup-local-llm.sh (스펙 감지 로컬 LLM)
 ├── docs/                          # 상세 규칙 (@import 참조) + ADR
 ├── skills/
+│   ├── grill-me/                  # 빌드 전 의도 심문 (정렬)
+│   ├── handoff/                   # 세션 인계 메모 작성
+│   ├── verify-layer/              # 결과물 검증 (비판 패널 + 3층 루브릭)
 │   ├── session-archive-ingest/    # 세션 적재 스킬
 │   └── session-archive-stats/     # 아카이브 현황 스킬
 ├── tools/session-archive/         # 적재·요약·내보내기 파이프라인 (Python)
