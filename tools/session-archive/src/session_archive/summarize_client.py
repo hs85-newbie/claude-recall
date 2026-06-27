@@ -114,10 +114,32 @@ def _load_env_file(path: Path) -> None:
 
 
 def get_client() -> anthropic.Anthropic:
+    import os
+
     _load_env_file(Path.home() / ".env")
     # WHY: 레포 루트 .env(gitignore됨)도 로드 — 키를 프로젝트에 두는 경우 지원 (이식성)
     _load_env_file(Path(__file__).resolve().parents[4] / ".env")
-    return anthropic.Anthropic()
+
+    # WHY: API key 우선 — 만료가 없어 무인 일일 파이프라인(launchd)에 안정적.
+    #      API key가 없을 때만 OAuth(Claude Code 토큰)로 fallback.
+    #      API key와 auth_token을 동시에 보내면 API가 거부하므로 분기로 분리한다.
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        return anthropic.Anthropic()
+
+    # fallback: OAuth access token. Authorization: Bearer로 인증되며,
+    # /v1/messages는 `anthropic-beta: oauth-2025-04-20` 헤더가 없으면 401이라 함께 보낸다.
+    # WORKAROUND: OAuth 토큰은 만료되므로 무인 실행 중 만료되면 갱신 전까지 요약이 실패한다(인증 에러로 표면화).
+    oauth_token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN") or os.environ.get("ANTHROPIC_AUTH_TOKEN")
+    if oauth_token:
+        return anthropic.Anthropic(
+            auth_token=oauth_token,
+            default_headers={"anthropic-beta": "oauth-2025-04-20"},
+        )
+
+    raise RuntimeError(
+        "요약 인증 자격증명이 없습니다 — ANTHROPIC_API_KEY 또는 "
+        "CLAUDE_CODE_OAUTH_TOKEN(/ANTHROPIC_AUTH_TOKEN) 중 하나를 ~/.env 또는 레포 루트 .env에 설정하세요."
+    )
 
 
 def _compute_cost(model: str, input_tokens: int, output_tokens: int) -> float:
