@@ -10,7 +10,7 @@
 
 ## 1. 배경 (Context)
 
-session-archive(ADR-001)가 세션 로그를 적재·요약·Obsidian export까지 동작하게 된 뒤, **여러 인프라(맥/윈도우 등)에서 동일한 RAG/LLM-wiki를 쓰고 싶다**는 요구가 생겼다. Paperclip/OpenSpace(Railway) 종료로 **"중앙 서버·죽은 인프라 0, 휴대성"** 기조가 확립된 상태(README 이력 참조).
+session-archive(ADR-001)가 세션 로그를 적재·요약·Obsidian export까지 동작하게 된 뒤, **여러 인프라(맥/윈도우 등)에서 동일한 RAG/LLM-wiki를 쓰고 싶다**는 요구가 생겼다. 초기 외부 인프라(Railway 기반) 종료로 **"중앙 서버·죽은 인프라 0, 휴대성"** 기조가 확립된 상태.
 
 핵심 질문 4가지를 순서대로 결정했다:
 1. 통합 저장·동기화를 무엇으로? (git vs Railway/Vercel)
