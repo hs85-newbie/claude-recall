@@ -33,7 +33,39 @@
 
 `bootstrap.sh`(다음 단계)는 시작할 때 아래 도구가 다 있는지 자동으로 확인하고, 하나라도 없으면 안내만 하고 멈춥니다(도구를 대신 깔아주지는 않음). 그러니 이 5가지를 먼저 깔아 두세요.
 
-> **OS 안내**: 이 가이드는 **macOS / Linux** 기준입니다. Windows는 WSL(Windows Subsystem for Linux) 안에서 진행하세요.
+> **OS 안내**: 이 가이드는 **macOS / Linux** 기준입니다. Windows라면 먼저 아래 **0-0**으로 WSL을 깔고, 그 안의 우분투 터미널에서 나머지를 그대로 따라 하세요.
+
+### 0-0. (Windows만) WSL 설치
+
+`bootstrap.sh`는 bash 스크립트라 윈도우에서 직접 돌아가지 않습니다. WSL은 윈도우 안에 우분투(리눅스)를 통째로 띄워주는 기능인데, 이 안에서는 macOS/Linux 가이드가 그대로 통합니다. 윈도우가 아니면 이 단계는 건너뛰세요.
+
+**1) PowerShell을 관리자 권한으로 엽니다.** 시작 메뉴에서 "PowerShell"을 찾아 우클릭 → "관리자 권한으로 실행".
+
+```powershell
+wsl --install -d Ubuntu
+```
+
+설치가 끝나면 재부팅하라고 합니다. 재부팅하세요.
+
+```
+설치 중: Ubuntu
+요청한 작업이 완료되었습니다. 변경 내용을 적용하려면 시스템을 다시 시작하세요.
+```
+
+**2) 재부팅하면 우분투 창이 저절로 뜹니다.** 처음 한 번 사용자 이름과 비밀번호를 만들라고 합니다(윈도우 계정과 별개, 비번 입력 시 화면에 안 보이는 게 정상).
+
+```
+Enter new UNIX username: cjons
+New password:
+Retry new password:
+Installation successful!
+```
+
+여기까지 오면 우분투 터미널 프롬프트(`cjons@...:~$`)가 보입니다.
+
+> **중요 — 이제부터 모든 명령은 이 우분투 터미널 안에서 칩니다.** PowerShell이 아닙니다. 다음에 다시 열 때는 시작 메뉴에서 "Ubuntu"를 누르면 됩니다.
+
+우분투는 Linux이므로, 아래 0-2 표에서는 **"없으면 (Linux)"** 칸의 명령을 쓰면 됩니다. macOS 전용인 0-1(Homebrew)은 건너뛰세요.
 
 ### 0-1. (macOS만) Homebrew 설치
 
