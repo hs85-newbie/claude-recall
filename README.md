@@ -56,7 +56,7 @@ export ANTHROPIC_API_KEY=sk-ant-...         # 요약 단계용 (또는 ~/.env)
 | `node` | gstack·local-llm MCP | `brew install node` / nodejs.org |
 | `claude` | Claude Code 본체 (+로그인) | Claude Code CLI 설치 후 `claude /login` |
 
-- 네트워크 필요(gstack·im-not-ai clone). **macOS / Linux 전용**(bash) — Windows는 WSL.
+- 네트워크 필요(gstack·im-not-ai clone). 위 `bootstrap.sh`는 **macOS / Linux 전용**(bash). **Windows는 네이티브 `bootstrap.ps1`** 사용 — `GETTING_STARTED.md`의 [0-W 섹션](GETTING_STARTED.md#0-w-windows만-네이티브-설치) 참고(gstack·humanize 제외, WSL 불필요).
 - **에이전트에게 시키지 말고 사용자가 직접 실행**: `bootstrap.sh`는 `~/.claude/settings.json`을 갱신하므로, AI 에이전트가 실행하면 자가수정 가드에 막힐 수 있음. 터미널에서 `./bootstrap.sh`로 실행.
 
 ### 설치 후 (Post-install)

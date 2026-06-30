@@ -33,39 +33,71 @@
 
 `bootstrap.sh`(다음 단계)는 시작할 때 아래 도구가 다 있는지 자동으로 확인하고, 하나라도 없으면 안내만 하고 멈춥니다(도구를 대신 깔아주지는 않음). 그러니 이 5가지를 먼저 깔아 두세요.
 
-> **OS 안내**: 이 가이드는 **macOS / Linux** 기준입니다. Windows라면 먼저 아래 **0-0**으로 WSL을 깔고, 그 안의 우분투 터미널에서 나머지를 그대로 따라 하세요.
+> **OS 안내**: 이 가이드의 0-1부터는 **macOS / Linux**(bash) 기준입니다. **Windows는 아래 [0-W. (Windows만) 네이티브 설치](#0-w-windows만-네이티브-설치)** 하나로 끝나니, 그 섹션만 따르고 0-1 이후는 건너뛰세요. WSL은 필요 없습니다.
 
-### 0-0. (Windows만) WSL 설치
+### 0-W. (Windows만) 네이티브 설치
 
-`bootstrap.sh`는 bash 스크립트라 윈도우에서 직접 돌아가지 않습니다. WSL은 윈도우 안에 우분투(리눅스)를 통째로 띄워주는 기능인데, 이 안에서는 macOS/Linux 가이드가 그대로 통합니다. 윈도우가 아니면 이 단계는 건너뛰세요.
+윈도우는 WSL 없이 **PowerShell에서 `bootstrap.ps1`** 하나로 설치합니다. macOS/Linux용 `bootstrap.sh`와 같은 일을 윈도우 방식으로 합니다. 이 섹션만 끝내면 0-1 이후는 안 봐도 됩니다.
 
-**1) PowerShell을 관리자 권한으로 엽니다.** 시작 메뉴에서 "PowerShell"을 찾아 우클릭 → "관리자 권한으로 실행".
+> **포함**: 전역 규칙·설정·훅(.ps1)·에이전트·스킬·세션 아카이브(회상·검색·대시보드)·로컬 LLM MCP
+> **제외**: gstack · im-not-ai(humanize) — bash 기반 외부 도구라 빠집니다. 필요하면 나중에 각 도구를 MCP로 등록하거나 직접 `git clone`해서 별도로 붙이세요.
+
+**1) 도구 5종 설치** — PowerShell에서(`winget`은 윈도우10/11 기본 포함). 이미 있으면 건너뜁니다.
 
 ```powershell
-wsl --install -d Ubuntu
+winget install Git.Git                  # git
+winget install Python.Python.3.12       # python 3.11+
+winget install OpenJS.NodeJS            # node (로컬 LLM MCP용)
+winget install Microsoft.PowerShell     # pwsh 7 (훅 런타임 — 한글/JSON 안정)
+npm install -g @anthropic-ai/claude-code   # claude
 ```
 
-설치가 끝나면 재부팅하라고 합니다. 재부팅하세요.
+설치 후 **PowerShell 창을 새로 열어야** PATH가 잡힙니다. 그다음 Claude Code 로그인:
 
-```
-설치 중: Ubuntu
-요청한 작업이 완료되었습니다. 변경 내용을 적용하려면 시스템을 다시 시작하세요.
-```
-
-**2) 재부팅하면 우분투 창이 저절로 뜹니다.** 처음 한 번 사용자 이름과 비밀번호를 만들라고 합니다(윈도우 계정과 별개, 비번 입력 시 화면에 안 보이는 게 정상).
-
-```
-Enter new UNIX username: cjons
-New password:
-Retry new password:
-Installation successful!
+```powershell
+claude     # 처음 실행 시 /login 안내 → 화면 지시대로 로그인
 ```
 
-여기까지 오면 우분투 터미널 프롬프트(`cjons@...:~$`)가 보입니다.
+> 회사 API 엔드포인트를 쓰는 경우, Claude Code가 그걸 보도록 하는 환경변수 설정은 기존에 쓰던 방식 그대로 두면 됩니다(이 스크립트는 안 건드립니다).
 
-> **중요 — 이제부터 모든 명령은 이 우분투 터미널 안에서 칩니다.** PowerShell이 아닙니다. 다음에 다시 열 때는 시작 메뉴에서 "Ubuntu"를 누르면 됩니다.
+**2) 레포 받고 `bootstrap.ps1` 실행** — ★ **에이전트 말고 사용자가 직접** 실행하세요(설정 파일을 갱신해서 AI가 돌리면 자가수정 가드에 막힙니다).
 
-우분투는 Linux이므로, 아래 0-2 표에서는 **"없으면 (Linux)"** 칸의 명령을 쓰면 됩니다. macOS 전용인 0-1(Homebrew)은 건너뛰세요.
+```powershell
+git clone https://github.com/hs85-newbie/claude-recall.git
+cd claude-recall
+./bootstrap.ps1
+```
+
+`bootstrap.ps1`이 하는 일:
+- `~\.claude\`에 CLAUDE.md·에이전트·스킬·훅(.ps1) 배치
+- `settings.json`을 **병합**(덮어쓰기 아님 — 기존 `enabledPlugins`·권한 등 보존, 백업 생성). `settings.local.json`은 손대지 않음
+- `session-archive` 설치(venv + 패키지)
+
+예상 출력 끝부분:
+
+```
+[bootstrap] settings.json 렌더+병합 완료 (기존 값 보존)
+[bootstrap] 완료
+다음 작업:
+  1. Claude Code를 재시작 ...
+```
+
+**3) Claude Code 재시작** → 설정·스킬·에이전트·훅 로드 확인.
+
+**4) (선택) 로컬 LLM** — "분석·설계·검증은 회사 API, 구현은 로컬 LLM" 분업을 쓰려면:
+- LM Studio(윈도우 앱) 설치 → 모델 로드 → 로컬 서버 시작(`localhost:1234`)
+- `gemma4-bench` 레포를 `~\gemma4-bench`로 clone
+- `./bootstrap.ps1` 재실행 → `local-llm` MCP가 settings에 포함됩니다(레포가 없으면 자동 제외됨).
+
+**5) 세션 회상·검색·대시보드 첫 실행**
+
+```powershell
+cd tools\session-archive
+.venv\Scripts\session-archive ingest          # 윈도우의 Claude Code 기록 적재
+.venv\Scripts\session-archive dashboard --open   # 누적 데이터 HTML 대시보드
+```
+
+> 윈도우는 자동 스케줄러를 안 깝니다(launchd/cron은 맥/리눅스 전용). 갱신하고 싶을 때 위 두 명령을 직접 실행하세요. 여기까지가 윈도우 설치 끝 — 아래 0-1부터는 macOS/Linux용 참고 자료입니다.
 
 ### 0-1. (macOS만) Homebrew 설치
 
