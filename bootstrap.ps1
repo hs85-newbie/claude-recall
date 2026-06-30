@@ -22,16 +22,34 @@ function Log  ($m) { Write-Host "[bootstrap] $m" -ForegroundColor Cyan }
 function Warn ($m) { Write-Host "[bootstrap] $m" -ForegroundColor Yellow }
 function Err  ($m) { Write-Host "[bootstrap] $m" -ForegroundColor Red }
 
-# ── python 실행기 탐색 (python / python3) ──
+# ── python 실행기 탐색 (python / python3 / py 런처) ──
+# WHY: 윈도우는 (1) python.org 설치본이 `py` 런처로만 PATH에 잡히거나
+#      (2) Microsoft Store 별칭 스텁이 `python`을 가로채 빈 출력을 내는 경우가 흔하다.
+#      세 후보를 모두 시도하고, 버전·실제 실행경로(sys.executable)를 한 번에 받아 검증한다.
 function Find-Python {
-    foreach ($c in @('python', 'python3')) {
-        $cmd = Get-Command $c -ErrorAction SilentlyContinue
-        if ($cmd) {
-            try {
-                $v = & $cmd.Source -c 'import sys; print("%d.%d" % sys.version_info[:2])'
-                if ([version]$v -ge [version]'3.11') { return $cmd.Source }
-            } catch { }
-        }
+    $probe = 'import sys; print(str(sys.version_info[0])+"."+str(sys.version_info[1])); print(sys.executable)'
+    # @{exe; pre} — py 런처는 -3 옵션으로 파이썬3 강제.
+    # py를 첫 후보로: Store 별칭 stub(python.exe)이 멈추거나 빈 출력 내는 경우를 회피.
+    $candidates = @(
+        @{ exe = 'py';      pre = @('-3') },
+        @{ exe = 'python';  pre = @() },
+        @{ exe = 'python3'; pre = @() }
+    )
+    foreach ($c in $candidates) {
+        $cmd = Get-Command $c.exe -ErrorAction SilentlyContinue
+        if (-not $cmd) { continue }
+        try {
+            $out = & $cmd.Source @($c.pre + @('-c', $probe)) 2>$null
+            if (-not $out) { continue }   # Store 스텁 등 빈 출력 → 다음 후보
+            $ver = ([string]($out | Select-Object -First 1)).Trim()
+            $exe = ([string]($out | Select-Object -Last 1)).Trim()
+            if ($ver -match '^(\d+)\.(\d+)') {
+                $maj = [int]$Matches[1]; $min = [int]$Matches[2]
+                if ((($maj -gt 3) -or ($maj -eq 3 -and $min -ge 11)) -and $exe) {
+                    return $exe   # 실제 python.exe 절대경로 반환(런처/별칭 모호성 제거)
+                }
+            }
+        } catch { }
     }
     return $null
 }
@@ -51,6 +69,12 @@ if ($missing.Count -gt 0) {
   git    : https://git-scm.com/download/win   (또는 winget install Git.Git)
   python : 3.11+  https://python.org           (또는 winget install Python.Python.3.12)
   claude : npm install -g @anthropic-ai/claude-code  →  claude  (로그인)
+
+  ※ "파이썬을 깔았는데도 위에 python이 뜬다"면 보통 PATH 문제입니다:
+     - 설치 후 PowerShell 창을 새로 여세요(PATH 갱신).
+     - `py -V` 가 되면 파이썬은 있는 겁니다(이 스크립트는 py 런처도 지원합니다).
+     - `python` 입력 시 Microsoft Store가 열리면, 설정 > 앱 > 앱 실행 별칭에서
+       python.exe/python3.exe 별칭을 끄세요(가짜 stub가 진짜 파이썬을 가립니다).
 '@
     exit 1
 }
