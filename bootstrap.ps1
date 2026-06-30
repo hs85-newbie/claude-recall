@@ -1,4 +1,4 @@
-# bootstrap.ps1 — 신규 윈도우에서 claude-recall 전역 환경을 구성한다 (네이티브, WSL 불필요).
+﻿# bootstrap.ps1 — 신규 윈도우에서 claude-recall 전역 환경을 구성한다 (네이티브, WSL 불필요).
 #
 # 제공물: 전역 규칙(CLAUDE.md) · 설정(settings.json, 병합) · hooks(.ps1) · custom agents ·
 #         skills · session-archive(회상·검색·대시보드) · 로컬 LLM MCP(LM Studio)

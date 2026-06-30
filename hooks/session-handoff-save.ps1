@@ -1,4 +1,4 @@
-# session-handoff-save.ps1 — SessionEnd 훅 (모든 reason, Windows / pwsh 7)
+﻿# session-handoff-save.ps1 — SessionEnd 훅 (모든 reason, Windows / pwsh 7)
 #
 # WHY: 세션이 끝나면 "무엇을 하던 중이었는지"가 휘발한다. 다음 세션 시작 때
 #      session-handoff-load.ps1이 이 기록을 자동 주입해 수동 restore를 없앤다.

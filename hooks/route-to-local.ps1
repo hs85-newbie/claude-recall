@@ -1,4 +1,4 @@
-# route-to-local.ps1 — UserPromptSubmit 훅 (Windows / pwsh 7)
+﻿# route-to-local.ps1 — UserPromptSubmit 훅 (Windows / pwsh 7)
 #
 # WHY: 요약·번역·포매팅 같은 기계적 변환은 로컬 LLM(무료)으로 위임 가능하다.
 #      해당 작업으로 보이면 local-ops 에이전트 사용을 권하는 힌트를 컨텍스트에 추가한다.

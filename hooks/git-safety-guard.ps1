@@ -1,4 +1,4 @@
-# git-safety-guard.ps1 — PreToolUse(Bash) 훅 (Windows / pwsh 7)
+﻿# git-safety-guard.ps1 — PreToolUse(Bash) 훅 (Windows / pwsh 7)
 #
 # WHY: AI 에이전트가 일으킨 가장 위험한 사고가 git 파괴적 연산이었다.
 #      되돌리기 어려운 git 명령을 실행 직전 가로채 사용자 확인을 요구한다.

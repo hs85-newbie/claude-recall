@@ -1,4 +1,4 @@
-# session-handoff-load.ps1 — SessionStart 훅 (source=startup 전용, Windows / pwsh 7)
+﻿# session-handoff-load.ps1 — SessionStart 훅 (source=startup 전용, Windows / pwsh 7)
 #
 # WHY: 세션 시작마다 직전 맥락을 손으로 불러오는 반복을 없앤다.
 #      현재 작업 폴더(레포)의 최신 인계 메모를 additionalContext로 자동 주입한다.
