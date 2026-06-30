@@ -27,27 +27,31 @@ function Err  ($m) { Write-Host "[bootstrap] $m" -ForegroundColor Red }
 #      (2) Microsoft Store 별칭 스텁이 `python`을 가로채 빈 출력을 내는 경우가 흔하다.
 #      세 후보를 모두 시도하고, 버전·실제 실행경로(sys.executable)를 한 번에 받아 검증한다.
 function Find-Python {
-    $probe = 'import sys; print(str(sys.version_info[0])+"."+str(sys.version_info[1])); print(sys.executable)'
-    # @{exe; pre} — py 런처는 -3 옵션으로 파이썬3 강제.
+    # WHY: -c 코드에 큰따옴표(")를 쓰면 Windows PowerShell 5.1이 네이티브 인자로 넘길 때
+    #      따옴표를 깨뜨려 python이 SyntaxError로 죽는다(빈 출력 → 탐지 실패).
+    #      따옴표 없는 코드만 쓰고, major/minor/executable을 줄 단위로 출력받는다.
+    $probe = 'import sys; print(sys.version_info[0]); print(sys.version_info[1]); print(sys.executable)'
     # py를 첫 후보로: Store 별칭 stub(python.exe)이 멈추거나 빈 출력 내는 경우를 회피.
     $candidates = @(
-        @{ exe = 'py';      pre = @('-3') },
-        @{ exe = 'python';  pre = @() },
-        @{ exe = 'python3'; pre = @() }
+        @{ exe = 'py';      pre = '-3' },
+        @{ exe = 'python';  pre = '' },
+        @{ exe = 'python3'; pre = '' }
     )
     foreach ($c in $candidates) {
         $cmd = Get-Command $c.exe -ErrorAction SilentlyContinue
         if (-not $cmd) { continue }
         try {
-            $out = & $cmd.Source @($c.pre + @('-c', $probe)) 2>$null
-            if (-not $out) { continue }   # Store 스텁 등 빈 출력 → 다음 후보
-            $ver = ([string]($out | Select-Object -First 1)).Trim()
-            $exe = ([string]($out | Select-Object -Last 1)).Trim()
-            if ($ver -match '^(\d+)\.(\d+)') {
-                $maj = [int]$Matches[1]; $min = [int]$Matches[2]
-                if ((($maj -gt 3) -or ($maj -eq 3 -and $min -ge 11)) -and $exe) {
-                    return $exe   # 실제 python.exe 절대경로 반환(런처/별칭 모호성 제거)
-                }
+            # 인자를 배열 splat 대신 명시적으로 — 5.1 인자 전달 모호성 제거
+            if ($c.pre) { $out = & $cmd.Source $c.pre '-c' $probe 2>$null }
+            else        { $out = & $cmd.Source '-c' $probe 2>$null }
+            $lines = @($out | ForEach-Object { "$_".Trim() } | Where-Object { $_ -ne '' })
+            if ($lines.Count -lt 3) { continue }   # Store 스텁 등 → 다음 후보
+            $maj = 0; $min = 0
+            [void][int]::TryParse($lines[0], [ref]$maj)
+            [void][int]::TryParse($lines[1], [ref]$min)
+            $exe = $lines[2]
+            if ((($maj -gt 3) -or ($maj -eq 3 -and $min -ge 11)) -and $exe) {
+                return $exe   # 실제 python.exe 절대경로 반환(런처/별칭 모호성 제거)
             }
         } catch { }
     }
@@ -63,6 +67,15 @@ if (-not $PY)                                                 { $missing += 'pyt
 if (-not (Get-Command claude -ErrorAction SilentlyContinue)) { $missing += 'claude (Claude Code CLI)' }
 if ($missing.Count -gt 0) {
     Err "필수 도구 없음: $($missing -join ', ')"
+    if ($missing -contains 'python 3.11+') {
+        Warn '파이썬 탐지 진단 (PATH에서 무엇이 잡히는지):'
+        foreach ($e in @('py', 'python', 'python3')) {
+            $g = Get-Command $e -ErrorAction SilentlyContinue
+            if ($g) { Write-Host ('  {0,-8} → {1}' -f $e, $g.Source) }
+            else    { Write-Host ('  {0,-8} → (PATH에 없음)' -f $e) }
+        }
+        Write-Host '  → 위 줄을 알려주시면 탐지 로직을 맞추겠습니다.'
+    }
     Write-Host @'
 
 [bootstrap] 아래 설치 후 다시 실행하세요.
