@@ -109,6 +109,17 @@ if (Test-Path $dstClaude) { Copy-Item $dstClaude "$dstClaude.bak-$TS" -Force }
 Copy-Item (Join-Path $REPO 'CLAUDE.md') $dstClaude -Force
 Log 'CLAUDE.md 배치'
 
+# ── 2b. docs (CLAUDE.md의 @docs/*.md @import 대상) ──
+# WHY: 맥은 CLAUDE.md가 심링크라 @docs/가 레포 docs로 풀리지만, 윈도우는 복사라
+#      ~/.claude/docs/ 가 있어야 상대경로 @import가 풀린다. docs 내용을 그대로 복사.
+$srcDocs = Join-Path $REPO 'docs'
+if (Test-Path $srcDocs) {
+    $dstDocs = Join-Path $CLAUDE_DIR 'docs'
+    New-Item -ItemType Directory -Force -Path $dstDocs | Out-Null
+    Copy-Item (Join-Path $srcDocs '*') $dstDocs -Recurse -Force   # '\*' : docs 내용만 복사(중첩 방지)
+    Log "docs 배치 ($((Get-ChildItem $dstDocs -Filter *.md -File).Count)개 .md)"
+}
+
 # ── 3. agents ──
 Copy-Item (Join-Path $REPO 'agents\*.md') (Join-Path $CLAUDE_DIR 'agents') -Force
 Log "agents 배치: $((Get-ChildItem (Join-Path $REPO 'agents\*.md')).Count)개"
