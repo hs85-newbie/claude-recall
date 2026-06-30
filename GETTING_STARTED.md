@@ -48,9 +48,10 @@
 winget install Git.Git                  # git
 winget install Python.Python.3.12       # python 3.11+
 winget install OpenJS.NodeJS            # node (로컬 LLM MCP용)
-winget install Microsoft.PowerShell     # pwsh 7 (훅 런타임 — 한글/JSON 안정)
 npm install -g @anthropic-ai/claude-code   # claude
 ```
+
+> 훅은 윈도우 **기본 내장 Windows PowerShell(5.1)**로 돌아가므로 PowerShell 7(pwsh) 설치는 **필요 없습니다**. (원하면 `winget install Microsoft.PowerShell`로 깔아도 됩니다.)
 
 설치 후 **PowerShell 창을 새로 열어야** PATH가 잡힙니다. 그다음 Claude Code 로그인:
 
@@ -65,8 +66,10 @@ claude     # 처음 실행 시 /login 안내 → 화면 지시대로 로그인
 ```powershell
 git clone https://github.com/hs85-newbie/claude-recall.git
 cd claude-recall
-./bootstrap.ps1
+powershell -ExecutionPolicy Bypass -File .\bootstrap.ps1
 ```
+
+> `./bootstrap.ps1`이 실행 정책에 막히면 위처럼 `-ExecutionPolicy Bypass`를 붙이세요.
 
 `bootstrap.ps1`이 하는 일:
 - `~\.claude\`에 CLAUDE.md·에이전트·스킬·훅(.ps1) 배치

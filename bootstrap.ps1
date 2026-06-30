@@ -80,10 +80,9 @@ if ($missing.Count -gt 0) {
 }
 Log "python: $PY"
 
-# pwsh 7(훅 런타임) · node(로컬 LLM MCP)는 없어도 진행하되 경고
-$hasPwsh = [bool](Get-Command pwsh -ErrorAction SilentlyContinue)
+# 훅은 윈도우 기본 내장 Windows PowerShell(5.1)로 실행 — 별도 설치 불필요.
+# node(로컬 LLM MCP)만 없으면 경고(없어도 진행, MCP는 자동 제외).
 $hasNode = [bool](Get-Command node -ErrorAction SilentlyContinue)
-if (-not $hasPwsh) { Warn 'pwsh(PowerShell 7) 없음 — 훅이 동작하려면 필요: winget install Microsoft.PowerShell' }
 if (-not $hasNode) { Warn 'node 없음 — 로컬 LLM MCP에 필요(없으면 자동 제외): https://nodejs.org' }
 
 # ── 1. 디렉터리 ──
@@ -142,7 +141,9 @@ for ev, arr in (tpl.get("hooks") or {}).items():
             if cmd.endswith(".sh"):
                 name = os.path.basename(cmd).replace(".sh", ".ps1")
                 target = os.path.join(claude_dir, "hooks", name)
-                h["command"] = 'pwsh -NoProfile -ExecutionPolicy Bypass -File "%s"' % target
+                # 윈도우 기본 내장 Windows PowerShell 5.1 사용(별도 설치 불필요).
+                # .ps1에 UTF-8 BOM이 있어 5.1도 한글을 정상 파싱한다.
+                h["command"] = 'powershell -NoProfile -ExecutionPolicy Bypass -File "%s"' % target
 
 # MCP 서버 경로 → 윈도우
 mcp = tpl.get("mcpServers") or {}
